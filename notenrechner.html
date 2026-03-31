@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notenrechner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #e8eaee;
+    --surface:  #ffffff;
+    --surface2: #ffffff;
+    --border:   rgba(0,0,0,0.22);
+    --border2:  rgba(0,0,0,0.35);
+    --text:     #111827;
+    --muted:    #5a6270;
+    --accent:   #1d4ed8;
+    --accent-bg:#dbeafe;
+    --radius-md:8px;
+    --radius-lg:12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:       #0f1117;
+      --surface:  #1a1f2e;
+      --surface2: #2a3145;
+      --border:   rgba(255,255,255,0.18);
+      --border2:  rgba(255,255,255,0.32);
+      --text:     #e8eaf2;
+      --muted:    #7b85a0;
+      --accent:   #60a5fa;
+      --accent-bg:#1e2d50;
+    }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.5; }
+  .page { max-width: 620px; margin: 0 auto; padding: 24px 16px 48px; }
+  .app-header { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .app-icon { width: 40px; height: 40px; background: var(--accent-bg); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+  .app-title { font-size: 20px; font-weight: 600; }
+  .app-sub   { font-size: 13px; color: var(--muted); }
+  .scr { display: none; } .scr.on { display: block; }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 18px 20px; margin-bottom: 12px; }
+  .card-label { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 12px; }
+  .num-inp { font-size: 18px; font-weight: 500; padding: 9px 12px; border: 1.5px solid var(--border2); border-radius: var(--radius-md); background: var(--surface); color: var(--text); font-family: inherit; width: 110px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .num-inp:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .tog-grp { display: flex; gap: 6px; }
+  .tog { flex: 1; padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: transparent; color: var(--muted); font-size: 13px; font-weight: 500; cursor: pointer; text-align: center; transition: all .15s; font-family: inherit; }
+  .tog.on { border-color: var(--accent); background: var(--accent-bg); color: var(--accent); }
+  .sw-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .sw-row:last-child { margin-bottom: 0; }
+  .sw-row span { font-size: 14px; }
+  .sw { position: relative; display: inline-block; width: 42px; height: 24px; flex-shrink: 0; }
+  .sw input { opacity: 0; width: 0; height: 0; }
+  .sw-sl { position: absolute; inset: 0; background: var(--surface2); border: 0.5px solid var(--border2); border-radius: 12px; cursor: pointer; transition: .2s; }
+  .sw-sl::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: var(--muted); border-radius: 50%; transition: .2s; }
+  .sw input:checked + .sw-sl { background: var(--accent-bg); border-color: var(--accent); }
+  .sw input:checked + .sw-sl::before { transform: translateX(18px); background: var(--accent); }
+  .btn-go { width: 100%; padding: 13px; background: var(--text); color: var(--surface); border: none; border-radius: var(--radius-md); font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 6px; transition: opacity .15s; }
+  .btn-go:hover { opacity: .85; }
+  .cfg-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .cfg-sum  { font-size: 13px; color: var(--muted); }
+  .cfg-edit { font-size: 13px; color: var(--accent); cursor: pointer; border: none; background: none; padding: 0; font-family: inherit; }
+  .tabs-bar { display: flex; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; }
+  .tab { padding: 9px 16px; font-size: 14px; color: var(--muted); cursor: pointer; border: none; border-bottom: 2px solid transparent; margin-bottom: -1px; background: none; font-family: inherit; font-weight: 500; transition: color .15s; }
+  .tab.on { color: var(--text); border-bottom-color: var(--text); }
+  .pts-big { width: 100%; font-size: 42px; font-weight: 600; text-align: center; padding: 16px; border: 1.5px solid var(--border2); border-radius: var(--radius-lg); background: var(--surface); color: var(--text); font-family: inherit; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); transition: border-color .2s; }
+  .pts-big:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-bg); }
+  .step-btns { display: flex; gap: 6px; margin-bottom: 20px; }
+  .sbtn { flex: 1; padding: 8px 6px; border: 0.5px solid var(--border); border-radius: var(--radius-md); background: transparent; color: var(--muted); font-size: 13px; cursor: pointer; font-family: inherit; transition: background .15s; }
+  .sbtn:hover { background: var(--surface2); }
+  .grade-big { font-size: 72px; font-weight: 600; text-align: center; line-height: 1; transition: color .25s; margin: 4px 0 4px; letter-spacing: -2px; }
+  .grade-hint { text-align: center; font-size: 14px; font-weight: 500; margin-bottom: 16px; transition: color .25s; }
+  .pct-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+  .prog-track { height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; border: 0.5px solid var(--border); }
+  .prog-fill { height: 100%; border-radius: 3px; transition: width .35s, background .3s; }
+  .grade-empty { text-align: center; padding: 32px 0; color: var(--muted); font-size: 14px; }
+  .print-bar { display: flex; gap: 7px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .print-bar input { font-size: 12.5px; padding: 7px 10px; border: 1.5px solid var(--border2); border-radius: var(--radius-md); background: var(--surface); color: var(--text); font-family: inherit; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  .print-bar input::placeholder { color: var(--muted); }
+  .btn-print { padding: 7px 14px; border: 0.5px solid var(--border2); border-radius: var(--radius-md); background: transparent; color: var(--text); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; white-space: nowrap; transition: background .15s; display: flex; align-items: center; gap: 6px; }
+  .btn-print:hover { background: var(--surface2); }
+  .sp-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--border); font-size: 13.5px; }
+  .sp-row:last-child { border-bottom: none; }
+  .gpill { width: 48px; height: 26px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 12.5px; font-weight: 600; flex-shrink: 0; }
+  .sp-bar-wrap { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; overflow: hidden; border: 0.5px solid var(--border); }
+  .sp-bar { height: 100%; border-radius: 2px; }
+  .sp-pts { min-width: 110px; text-align: right; }
+  .sp-pct { min-width: 52px; text-align: right; color: var(--muted); }
+  @media (max-width: 420px) { .grade-big { font-size: 58px; } .sp-pct { display: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="app-header">
+    <div class="app-icon">📊</div>
+    <div>
+      <div class="app-title">Notenrechner</div>
+      <div class="app-sub">Note = 6 − 5 · (Punkte ÷ Maximalpunktzahl)</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1 -->
+  <div id="s0" class="scr on">
+    <div class="card">
+      <div class="card-label">Maximalpunktzahl</div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="number" class="num-inp" id="c-max" value="60" min="1" max="999">
+        <span style="font-size:14px;color:var(--muted)">Punkte</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label">Optionen</div>
+      <div class="sw-row">
+        <span>Halbe Punkte erlaubt</span>
+        <label class="sw"><input type="checkbox" id="c-half" checked><span class="sw-sl"></span></label>
+      </div>
+      <div class="sw-row">
+        <span>Notenformat</span>
+        <div class="tog-grp" style="width:auto;gap:5px">
+          <button class="tog"    id="f-ganz"    onclick="setFmt('ganz')">Ganze</button>
+          <button class="tog"    id="f-viertel" onclick="setFmt('viertel')">Viertel</button>
+          <button class="tog on" id="f-zehntel" onclick="setFmt('zehntel')">Zehntel</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-go" onclick="goRechner()">Los geht's →</button>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div id="s1" class="scr">
+    <div class="cfg-bar">
+      <span class="cfg-sum" id="cfg-sum"></span>
+      <button class="cfg-edit" onclick="goConfig()">✎ bearbeiten</button>
+    </div>
+    <div class="tabs-bar">
+      <button class="tab on" id="tab-r" onclick="setTab(0)">Rechner</button>
+      <button class="tab"    id="tab-s" onclick="setTab(1)">Notenspiegel</button>
+    </div>
+    <div id="t0">
+      <input type="number" class="pts-big" id="pts-in" placeholder="Punkte eingeben" min="0" oninput="updateGrade()">
+      <div id="step-btns" class="step-btns"></div>
+      <div id="grade-display" style="display:none">
+        <div class="grade-big"  id="grade-num">–</div>
+        <div class="grade-hint" id="grade-hint"></div>
+        <div class="pct-row"    id="pct-info"></div>
+        <div class="prog-track"><div class="prog-fill" id="prog-fill"></div></div>
+      </div>
+      <div class="grade-empty" id="grade-empty">Punkte eingeben, um die Note zu berechnen</div>
+    </div>
+    <div id="t1" style="display:none">
+      <div class="print-bar">
+        <input id="pr-bez" placeholder="Bezeichnung (z. B. KA 2 – Gleichungen)" style="flex:1;min-width:150px">
+        <input id="pr-kl"  placeholder="Klasse" style="width:70px">
+        <button class="btn-print" onclick="printSpiegel()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <rect x="3" y="1" width="10" height="10" rx="1"/>
+            <path d="M3 8H1v6h14V8h-2"/><path d="M5 13h6M5 11h6"/>
+          </svg>
+          Drucken / PDF
+        </button>
+      </div>
+      <div id="spiegel-rows"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BG   = ['#EAF3DE','#E1F5EE','#FAEEDA','#FAECE7','#FCEBEB','#F7C1C1'];
+const TX   = ['#3B6D11','#085041','#633806','#712B13','#A32D2D','#501313'];
+const MC   = ['#639922','#1D9E75','#BA7517','#D85A30','#E24B4A','#A32D2D'];
+const BG_P = ['#D4EDBE','#C5F0DC','#FDE9BD','#FDDBC7','#FDC8C8','#F0A0A0'];
+const TX_P = ['#1E5C08','#0A4535','#6B3D00','#6B2200','#7A1515','#4A0A0A'];
+const MC_P = ['#3a7a10','#0c6e49','#8a4e08','#8a2e0e','#7a1010','#500606'];
+const NAMES= ['sehr gut','gut','befriedigend','ausreichend','mangelhaft','ungenügend'];
+const S = { maxP:60, half:true, fmt:'zehntel' };
+
+function fmtPts(p) {
+  if (!S.half || p === Math.floor(p)) return '' + Math.round(p);
+  return p.toFixed(1).replace('.', ',');
+}
+function fmtG(g) {
+  if (g === null) return '–';
+  if (S.fmt === 'ganz') return '' + g;
+  if (S.fmt === 'zehntel') return g.toFixed(1).replace('.', ',');
+  const s = g.toFixed(2), [i, d] = s.split('.');
+  if (d === '00') return i;
+  if (d[1] === '0') return i + ',' + d[0];
+  return i + ',' + d;
+}
+function gcol(g, t) {
+  if (g === null) return t === 'mc' ? 'var(--muted)' : 'transparent';
+  const idx = Math.max(0, Math.min(5, Math.round(g) - 1));
+  return t === 'bg' ? BG[idx] : t === 'tx' ? TX[idx] : MC[idx];
+}
+function calcRaw(p)  { return Math.max(1, Math.min(6, 6 - 5 * (p / S.maxP))); }
+function applyFmt(r) {
+  if (S.fmt === 'ganz')    return Math.round(r);
+  if (S.fmt === 'viertel') return Math.round(r * 4) / 4;
+  return Math.round(r * 10) / 10;
+}
+function calcGrade(p) {
+  if (p === '' || isNaN(+p)) return null;
+  return applyFmt(calcRaw(+p));
+}
+function setFmt(f) {
+  S.fmt = f;
+  ['ganz','viertel','zehntel'].forEach(x => document.getElementById('f-'+x).classList.toggle('on', x===f));
+}
+function goRechner() {
+  S.maxP = Math.max(1, +document.getElementById('c-max').value) || 60;
+  S.half = document.getElementById('c-half').checked;
+  document.getElementById('s0').classList.remove('on');
+  document.getElementById('s1').classList.add('on');
+  const inp = document.getElementById('pts-in');
+  inp.max = S.maxP; inp.step = S.half ? 0.5 : 1; inp.value = '';
+  document.getElementById('grade-display').style.display = 'none';
+  document.getElementById('grade-empty').style.display   = 'block';
+  const fL = {ganz:'Ganze Noten', viertel:'Viertel', zehntel:'Zehntel'};
+  document.getElementById('cfg-sum').textContent =
+    S.maxP + ' Pkt. · ' + (S.half ? '½ Punkte' : 'Ganze Punkte') + ' · ' + fL[S.fmt];
+  buildStepBtns(); buildSpiegel();
+}
+function goConfig() { document.getElementById('s1').classList.remove('on'); document.getElementById('s0').classList.add('on'); }
+function setTab(t) {
+  document.getElementById('tab-r').classList.toggle('on', t===0);
+  document.getElementById('tab-s').classList.toggle('on', t===1);
+  document.getElementById('t0').style.display = t===0 ? 'block' : 'none';
+  document.getElementById('t1').style.display = t===1 ? 'block' : 'none';
+}
+function buildStepBtns() {
+  const steps = S.half ? [-1,-0.5,0.5,1] : [-1,1];
+  document.getElementById('step-btns').innerHTML = steps.map(s =>
+    `<button class="sbtn" onclick="stepPts(${s})">${s>0?'+':''}${(''+s).replace('.',',')} Pkt.</button>`
+  ).join('');
+}
+function stepPts(d) {
+  const inp = document.getElementById('pts-in');
+  let v = (parseFloat(inp.value)||0) + d;
+  v = Math.max(0, Math.min(S.maxP, Math.round(v*(S.half?2:1))/(S.half?2:1)));
+  inp.value = v; updateGrade();
+}
+function updateGrade() {
+  const v = document.getElementById('pts-in').value;
+  const disp  = document.getElementById('grade-display');
+  const empty = document.getElementById('grade-empty');
+  if (v==='' || isNaN(+v)) { disp.style.display='none'; empty.style.display='block'; return; }
+  const p = Math.max(0, Math.min(S.maxP, +v));
+  const g = applyFmt(calcRaw(p));
+  disp.style.display='block'; empty.style.display='none';
+  const num = document.getElementById('grade-num');
+  num.textContent = fmtG(g); num.style.color = gcol(g,'mc');
+  const hint = document.getElementById('grade-hint');
+  hint.textContent = NAMES[Math.max(0,Math.min(5,Math.round(g)-1))]; hint.style.color = gcol(g,'mc');
+  const pct = Math.round(p/S.maxP*100);
+  document.getElementById('pct-info').innerHTML = `<span>${pct} %</span><span>${fmtPts(p)} von ${S.maxP} Punkten</span>`;
+  const fill = document.getElementById('prog-fill');
+  fill.style.width = pct+'%'; fill.style.background = gcol(g,'mc');
+}
+function getSpiegelData() {
+  const step = S.half ? 0.5 : 1;
+  const notes = S.fmt==='ganz'    ? [1,2,3,4,5,6] :
+                S.fmt==='viertel' ? Array.from({length:21},(_,i)=>Math.round((1+i*.25)*100)/100) :
+                                    Array.from({length:51},(_,i)=>Math.round((1+i*.1)*10)/10);
+  const map = {};
+  for (let p=0; p<=S.maxP; p+=step) {
+    const g=calcGrade(p); if (!g) continue;
+    const k=''+g;
+    if (!map[k]) { map[k]={g,min:p,max:p}; }
+    else { if(p<map[k].min) map[k].min=p; if(p>map[k].max) map[k].max=p; }
+  }
+  return notes.map(n=>map[''+n]).filter(Boolean);
+}
+function buildSpiegel() {
+  const rows = getSpiegelData();
+  document.getElementById('spiegel-rows').innerHTML = rows.map(r => {
+    const pmax=Math.round(r.max/S.maxP*100), pmin=Math.round(r.min/S.maxP*100);
+    const ptsStr = r.min===r.max ? fmtPts(r.min)+' Pkt.' : fmtPts(r.min)+' – '+fmtPts(r.max)+' Pkt.';
+    const pctStr = pmin===pmax ? pmin+' %' : pmin+' – '+pmax+' %';
+    return `<div class="sp-row">
+      <div class="gpill" style="background:${gcol(r.g,'bg')};color:${gcol(r.g,'tx')}">${fmtG(r.g)}</div>
+      <div class="sp-bar-wrap"><div class="sp-bar" style="width:${pmax}%;background:${gcol(r.g,'mc')}"></div></div>
+      <div class="sp-pts">${ptsStr}</div>
+      <div class="sp-pct">${pctStr}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ════════════════════════════════════════
+   DRUCK-LAYOUT (Lehrerfreund-Stil)
+════════════════════════════════════════ */
+function printSpiegel() {
+  const rows  = getSpiegelData();
+  const bez   = document.getElementById('pr-bez').value.trim() || 'Klassenarbeit';
+  const kl    = document.getElementById('pr-kl').value.trim();
+  const datum = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fL    = {ganz:'Ganze Noten', viertel:'Viertel', zehntel:'Zehntel'};
+  let body    = '';
+
+  /* ── Ganze: 2×3 Kartenraster ── */
+  if (S.fmt === 'ganz') {
+    const cards = rows.map(r => {
+      const idx = Math.max(0, Math.min(5, r.g-1));
+      const pts = r.min===r.max ? fmtPts(r.min) : fmtPts(r.min)+' – '+fmtPts(r.max);
+      return `<div class="nc" style="background:${BG_P[idx]};border-top:4pt solid ${MC_P[idx]}">
+        <div style="display:flex;align-items:baseline;gap:8pt;margin-bottom:8pt">
+          <span class="nc-num" style="color:${MC_P[idx]}">${r.g}</span>
+          <span class="nc-name" style="color:${TX_P[idx]}">${NAMES[idx]}</span>
+        </div>
+        <div class="nc-divider" style="background:${MC_P[idx]}30"></div>
+        <div class="nc-pts" style="color:${TX_P[idx]}">${pts} Pkt.</div>
+      </div>`;
+    }).join('');
+    body = `<div class="card-grid">${cards}</div>`;
+
+  /* ── Viertel / Zehntel: Mehrspaltige Tabelle ── */
+  } else {
+    const numCols = S.fmt === 'viertel' ? 3 : 4;
+    const rpc     = Math.ceil(rows.length / numCols);
+    const cols    = Array.from({length: numCols}, (_, c) => rows.slice(c*rpc, (c+1)*rpc));
+
+    const tables = cols.filter(c => c.length).map(colRows => {
+      const trs = colRows.map((r, i) => {
+        const idx     = Math.max(0, Math.min(5, Math.round(r.g)-1));
+        const prevIdx = i > 0 ? Math.max(0, Math.min(5, Math.round(colRows[i-1].g)-1)) : idx;
+        const sep     = i > 0 && idx !== prevIdx;
+        const pts     = r.min===r.max ? fmtPts(r.min) : fmtPts(r.min)+' – '+fmtPts(r.max);
+        const sepStyle = sep ? 'border-top:1.5pt solid #bbb;' : '';
+        return `<tr>
+          <td style="border-left:3pt solid ${MC_P[idx]};${sepStyle}padding-left:7pt">${pts} Pkt.</td>
+          <td style="${sepStyle}text-align:right;padding-right:5pt">
+            <span class="badge" style="background:${BG_P[idx]};color:${TX_P[idx]}">${fmtG(r.g)}</span>
+          </td>
+        </tr>`;
+      }).join('');
+      return `<table>
+        <thead><tr>
+          <th style="text-align:left;padding-left:10pt">Punkte</th>
+          <th style="text-align:right;padding-right:5pt">Note</th>
+        </tr></thead>
+        <tbody>${trs}</tbody>
+      </table>`;
+    }).join('');
+    body = `<div class="col-wrap">${tables}</div>`;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<title>Notenspiegel – ${bez}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Helvetica Neue',Arial,sans-serif;font-size:10pt;color:#1a1a1a}
+@page{size:A4 portrait;margin:1.3cm}
+/* Header */
+.hdr{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:16pt;padding-bottom:9pt;border-bottom:2pt solid #1a1a1a}
+.ttl{font-size:15pt;font-weight:700;letter-spacing:-.2pt;margin-bottom:3pt}
+.sub{font-size:9pt;color:#555}
+.datum{font-size:9pt;color:#666;text-align:right}
+/* Ganze: 2×3 Kartenraster */
+.card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10pt}
+.nc{border-radius:4pt;padding:12pt 11pt}
+.nc-num{font-size:38pt;font-weight:700;line-height:1;letter-spacing:-1pt}
+.nc-name{font-size:10pt;font-weight:600}
+.nc-divider{height:1pt;margin:9pt 0}
+.nc-pts{font-size:10.5pt;font-weight:600}
+/* Mehrspaltige Tabelle */
+.col-wrap{display:flex;gap:10pt;align-items:flex-start}
+table{flex:1;border-collapse:collapse}
+thead tr{border-bottom:1.5pt solid #333}
+th{font-size:8pt;font-weight:600;color:#444;padding:4pt 5pt}
+td{padding:3.5pt 5pt;font-size:9pt;color:#222;border-bottom:.5pt solid #ebebeb;vertical-align:middle}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:24pt;padding:1pt 5pt;border-radius:3pt;font-weight:700;font-size:9pt}
+/* Footer */
+.ftr{margin-top:14pt;padding-top:6pt;border-top:.5pt solid #ccc;display:flex;justify-content:space-between;font-size:7.5pt;color:#999}
+</style></head>
+<body>
+<div class="hdr">
+  <div>
+    <div class="ttl">Notenspiegel &ndash; ${bez}</div>
+    <div class="sub">${kl ? 'Klasse&nbsp;'+kl+'&ensp;&middot;&ensp;' : ''}Max.&nbsp;${S.maxP}&nbsp;Punkte&ensp;&middot;&ensp;${fL[S.fmt]}${S.half ? '&ensp;&middot;&ensp;halbe Punkte' : ''}</div>
+  </div>
+  <div class="datum">${datum}</div>
+</div>
+${body}
+<div class="ftr">
+  <span>Note = 6 &minus; 5 &middot; (Punkte &divide; ${S.maxP})</span>
+  <span>Notenrechner</span>
+</div>
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`;
+
+  const blob = new Blob([html], {type:'text/html'});
+  window.open(URL.createObjectURL(blob), '_blank');
+}
+</script>
+</body>
+</html>

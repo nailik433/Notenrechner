@@ -493,8 +493,11 @@ function printSpiegel() {
     dashedLine(mx, lowerTop + i * thirdH, pw - mx, lowerTop + i * thirdH, 3, 2);
   }
 
-  /* ── SAVE ── */
-  doc.save('Notenspiegel \u2013 ' + bez + '.pdf');
+  /* ── DRUCKEN ── */
+  const pdfBlob = doc.output('blob');
+  const url = URL.createObjectURL(pdfBlob);
+  const printWin = window.open(url);
+  printWin.onload = function() { printWin.print(); };
 }
 </script>
 </body>

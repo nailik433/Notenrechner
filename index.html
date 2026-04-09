@@ -330,7 +330,7 @@ function printSpiegel() {
 
   /* ── TABLE ── */
   const tableTop = headerLineY + 4;
-  const tableBottom = halfY - 10; // leave room for footer
+  const tableBottom = halfY - 6; // leave room for footer
   const availH = tableBottom - tableTop;
 
   if (S.fmt === 'ganz') {
@@ -385,7 +385,7 @@ function printSpiegel() {
     const colW = (cw - colGap*(numCols-1)) / numCols;
     const ptsColW = colW * 0.65;
     const noteColW = colW * 0.35;
-    const rowH = Math.min(5.2, availH / (rpc + 1.5)); // +1.5 for header
+    const rowH = availH / (rpc + 1.5); // fill entire upper half
 
     for (let c = 0; c < numCols; c++) {
       const colRows = rows.slice(c*rpc, (c+1)*rpc);
@@ -456,7 +456,7 @@ function printSpiegel() {
   }
 
   /* ── FOOTER (obere Hälfte) ── */
-  const footerY = halfY - 5;
+  const footerY = halfY - 3;
   doc.setDrawColor(200);
   doc.setLineWidth(0.15);
   doc.line(mx, footerY, pw - mx, footerY);

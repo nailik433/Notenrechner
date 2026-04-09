@@ -472,18 +472,26 @@ function printSpiegel() {
   const lowerTop = halfY;
   const lowerH = ph - halfY;
   const thirdH = lowerH / 3;
-  for (let i = 1; i <= 3; i++) {
-    const ly = lowerTop + i * thirdH;
-    if (i < 3) { // only 2 inner dividers needed, bottom edge is page edge
-      doc.setLineDashPattern([2, 2], 0);
-      doc.line(mx, ly, pw - mx, ly);
+
+  // Gestrichelte Linie zeichnen (manuell, da jsPDF keine dash-API hat)
+  function dashedLine(x1, y1, x2, y2, dashLen, gapLen) {
+    const dx = x2 - x1, dy = y2 - y1;
+    const len = Math.sqrt(dx*dx + dy*dy);
+    const ux = dx/len, uy = dy/len;
+    let pos = 0;
+    while (pos < len) {
+      const end = Math.min(pos + dashLen, len);
+      doc.line(x1 + ux*pos, y1 + uy*pos, x1 + ux*end, y1 + uy*end);
+      pos = end + gapLen;
     }
   }
-  // also a dashed line at the half-point (top of lower section)
-  doc.setLineDashPattern([2, 2], 0);
-  doc.line(mx, halfY, pw - mx, halfY);
 
-  doc.setLineDashPattern([], 0); // reset
+  // Trennlinie oben (Halbierung)
+  dashedLine(mx, halfY, pw - mx, halfY, 3, 2);
+  // 2 innere Trennlinien
+  for (let i = 1; i < 3; i++) {
+    dashedLine(mx, lowerTop + i * thirdH, pw - mx, lowerTop + i * thirdH, 3, 2);
+  }
 
   /* ── SAVE ── */
   doc.save('Notenspiegel \u2013 ' + bez + '.pdf');

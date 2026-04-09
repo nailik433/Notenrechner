@@ -494,10 +494,21 @@ function printSpiegel() {
   }
 
   /* ── DRUCKEN ── */
-  const pdfBlob = doc.output('blob');
-  const url = URL.createObjectURL(pdfBlob);
-  const printWin = window.open(url);
-  printWin.onload = function() { printWin.print(); };
+  const pdfData = doc.output('datauristring');
+  const iframe = document.createElement('iframe');
+  iframe.style.position = 'fixed';
+  iframe.style.right = '0';
+  iframe.style.bottom = '0';
+  iframe.style.width = '0';
+  iframe.style.height = '0';
+  iframe.style.border = 'none';
+  iframe.src = pdfData;
+  document.body.appendChild(iframe);
+  iframe.onload = function() {
+    setTimeout(function() {
+      iframe.contentWindow.print();
+    }, 500);
+  };
 }
 </script>
 </body>

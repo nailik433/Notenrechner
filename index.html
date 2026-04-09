@@ -330,7 +330,7 @@ function printSpiegel() {
 
   /* ── TABLE ── */
   const tableTop = headerLineY + 4;
-  const tableBottom = halfY - 6; // leave room for footer
+  const tableBottom = halfY - 2; // knapp über der gestrichelten Linie
   const availH = tableBottom - tableTop;
 
   if (S.fmt === 'ganz') {
@@ -455,18 +455,7 @@ function printSpiegel() {
     }
   }
 
-  /* ── FOOTER (obere Hälfte) ── */
-  const footerY = halfY - 3;
-  doc.setDrawColor(200);
-  doc.setLineWidth(0.15);
-  doc.line(mx, footerY, pw - mx, footerY);
-  doc.setFontSize(6.5);
-  doc.setFont('helvetica','normal');
-  doc.setTextColor(160);
-  doc.text('Note = 6 \u2212 5 \u00b7 (Punkte \u00f7 ' + S.maxP + ')', mx, footerY + 3);
-  doc.text('Notenrechner', pw - mx, footerY + 3, { align: 'right' });
-
-  /* ── UNTERE HÄLFTE: 3 gestrichelte Linien ── */
+  /* ── UNTERE HÄLFTE: 3 gestrichelte Linien (bis zum Seitenrand) ── */
   doc.setDrawColor(160);
   doc.setLineWidth(0.3);
   const lowerTop = halfY;
@@ -486,11 +475,9 @@ function printSpiegel() {
     }
   }
 
-  // Trennlinie oben (Halbierung)
-  dashedLine(mx, halfY, pw - mx, halfY, 3, 2);
-  // 2 innere Trennlinien
-  for (let i = 1; i < 3; i++) {
-    dashedLine(mx, lowerTop + i * thirdH, pw - mx, lowerTop + i * thirdH, 3, 2);
+  // 3 gestrichelte Linien (Halbierung + 2 Drittel-Trennungen)
+  for (let i = 0; i < 3; i++) {
+    dashedLine(0, lowerTop + i * thirdH, pw, lowerTop + i * thirdH, 3, 2);
   }
 
   /* ── DRUCKEN ── */
